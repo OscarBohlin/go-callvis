@@ -108,6 +108,10 @@ func outputDot(fname string, outputFormat string) {
 		log.Fatalf("%v\n", writeErr)
 	}
 
+	if outputFormat == "dot" {
+		return
+	}
+
 	log.Printf("converting dot to %s\n", outputFormat)
 
 	_, err = dotToImage(fname, outputFormat, output)
