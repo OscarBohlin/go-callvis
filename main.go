@@ -124,23 +124,36 @@ func outputDot(fname string, outputFormat string) {
 	}
 }
 
-func writeCsv(writer *csv.Writer, nodesMap *map[*ssa.Function]*callgraph.Node) {
-	for _, node := range *nodesMap {
+func writeCsv(writer *csv.Writer, nodesMap map[*ssa.Function]*callgraph.Node) {
+	for fun, node := range nodesMap {
+		if node.Out == nil {
+			continue
+		}
+
+		line := []string{fun.String()}
+
 		for _, edge := range node.Out {
-			line := []string{node.String(),edge.Callee.String()}
-			writer.Write(line)
+			toFun := nodesMap[edge.Callee.Func]
+			if toFun != nil {
+				line = append(line, toFun.String())
+			}
+		}
+		err := writer.Write(line)
+		if err != nil {
+			log.Fatalf("error writing csv: %v\n", err)
 		}
 	}
 }
 
+//Creates a adjacency list in csv format for all nodes and edges
 func dotToCsv(fname string) (error) {
 	f, err := os.Create(fname)
 	if err != nil {
-		log.Fatalf("could not create file: %v\n", err)
+		log.Fatalf("could not create file %v: %v\n", fname, err)
 	}
+
 	writer := csv.NewWriter(f)
-	log.Printf("nodes: %d\n", len(Analysis.callgraph.Nodes))
-	writeCsv(writer, &Analysis.callgraph.Nodes)
+	writeCsv(writer, Analysis.callgraph.Nodes)
 	writer.Flush()
 	f.Close()
 	return nil
