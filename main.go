@@ -133,10 +133,7 @@ func writeCsv(writer *csv.Writer, nodesMap map[*ssa.Function]*callgraph.Node) {
 		line := []string{fun.String()}
 
 		for _, edge := range node.Out {
-			toFun := nodesMap[edge.Callee.Func]
-			if toFun != nil {
-				line = append(line, toFun.String())
-			}
+			line = append(line, edge.Callee.Func.String())
 		}
 		err := writer.Write(line)
 		if err != nil {
