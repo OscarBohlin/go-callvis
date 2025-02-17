@@ -30,7 +30,7 @@ const (
 	CallGraphTypeStatic CallGraphType = "static"
 	CallGraphTypeCha    CallGraphType = "cha"
 	CallGraphTypeRta    CallGraphType = "rta"
-	CallGraphTypeVta	CallGraphType = "vta"
+	CallGraphTypeVta    CallGraphType = "vta"
 )
 
 // ==[ type def/func: analysis   ]===============================================
