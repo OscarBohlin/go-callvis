@@ -42,6 +42,7 @@ var (
 	skipBrowser   = flag.Bool("skipbrowser", false, "Skip opening browser.")
 	outputFile    = flag.String("file", "", "output filename - omit to use server mode")
 	outputFormat  = flag.String("format", "svg", "output file format [svg | png | jpg | ...]")
+	importFlag    = flag.String("exportImport", "", "Writes the imports found in provided name or import path to specified file.")
 	cacheDir      = flag.String("cacheDir", "", "Enable caching to avoid unnecessary re-rendering, you can force rendering by adding 'refresh=true' to the URL query or emptying the cache directory")
 	callgraphAlgo = flag.String("algo", string(CallGraphTypeStatic), fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q",
 		CallGraphTypeStatic, CallGraphTypeCha, CallGraphTypeRta))
@@ -120,6 +121,19 @@ func outputDot(fname string, outputFormat string) {
 	}
 }
 
+
+func outputImports(fname string) {
+	output := ""
+	for _, p := range Analysis.imports {
+		output += fmt.Sprintf("%v\n", p.String())
+	}
+	bytes := []byte(output)
+	err := os.WriteFile(fname, bytes, 0755)
+	if err != nil {
+		 log.Fatalf("%v\n", err)
+	}
+}
+
 //noinspection GoUnhandledErrorResult
 func main() {
 	flag.Parse()
@@ -146,6 +160,10 @@ func main() {
 	Analysis = new(analysis)
 	if err := Analysis.DoAnalysis(CallGraphType(*callgraphAlgo), "", tests, args); err != nil {
 		log.Fatal(err)
+	}
+
+	if *importFlag != "" {
+		outputImports(*importFlag)
 	}
 
 	http.HandleFunc("/", handler)
