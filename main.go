@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"go/build"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/pkg/browser"
 	"golang.org/x/tools/go/buildutil"
+	"golang.org/x/tools/go/callgraph"
+	"golang.org/x/tools/go/ssa"
 )
 
 const Usage = `go-callvis: visualize call graph of a Go program.
@@ -115,12 +118,47 @@ func outputDot(fname string, outputFormat string) {
 
 	log.Printf("converting dot to %s\n", outputFormat)
 
+	if outputFormat == "csv" {
+		dotToCsv(fmt.Sprintf("%v.csv", fname))
+		return
+	}
+
 	_, err = dotToImage(fname, outputFormat, output)
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
 }
 
+func writeCsv(writer *csv.Writer, nodesMap map[*ssa.Function]*callgraph.Node) {
+	for fun, node := range nodesMap {
+		if node.Out == nil {
+			continue
+		}
+
+		line := []string{fun.String()}
+
+		for _, edge := range node.Out {
+			line = append(line, edge.Callee.Func.String())
+		}
+		err := writer.Write(line)
+		if err != nil {
+			log.Fatalf("error writing csv: %v\n", err)
+		}
+	}
+}
+
+//Creates a adjacency list in csv format for all nodes and edges
+func dotToCsv(fname string) (error) {
+	f, err := os.Create(fname)
+	if err != nil {
+		log.Fatalf("could not create file %v: %v\n", fname, err)
+	}
+
+	writer := csv.NewWriter(f)
+	writeCsv(writer, Analysis.callgraph.Nodes)
+	writer.Flush()
+	f.Close()
+	return nil
 
 func outputImports(fname string) {
 	output := ""
