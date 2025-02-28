@@ -47,8 +47,8 @@ var (
 	outputFormat  = flag.String("format", "svg", "output file format [svg | png | jpg | ...]")
 	importFlag    = flag.String("exportImport", "", "Writes the imports found in provided name or import path to specified file.")
 	cacheDir      = flag.String("cacheDir", "", "Enable caching to avoid unnecessary re-rendering, you can force rendering by adding 'refresh=true' to the URL query or emptying the cache directory")
-	callgraphAlgo = flag.String("algo", string(CallGraphTypeStatic), fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q",
-		CallGraphTypeStatic, CallGraphTypeCha, CallGraphTypeRta))
+	callgraphAlgo = flag.String("algo", string(CallGraphTypeStatic), fmt.Sprintf("The algorithm used to construct the call graph. Possible values inlcude: %q, %q, %q, %q",
+		CallGraphTypeStatic, CallGraphTypeCha, CallGraphTypeRta, CallGraphTypeVta))
 
 	debugFlag   = flag.Bool("debug", false, "Enable verbose log.")
 	versionFlag = flag.Bool("version", false, "Show version and exit.")
@@ -110,10 +110,6 @@ func outputDot(fname string, outputFormat string) {
 	writeErr := os.WriteFile(fmt.Sprintf("%s.gv", fname), output, 0755)
 	if writeErr != nil {
 		log.Fatalf("%v\n", writeErr)
-	}
-
-	if outputFormat == "dot" {
-		return
 	}
 
 	log.Printf("converting dot to %s\n", outputFormat)

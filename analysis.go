@@ -16,6 +16,7 @@ import (
 	"golang.org/x/tools/go/callgraph"
 	"golang.org/x/tools/go/callgraph/cha"
 	"golang.org/x/tools/go/callgraph/rta"
+	"golang.org/x/tools/go/callgraph/vta"
 	"golang.org/x/tools/go/callgraph/static"
 
 	"golang.org/x/tools/go/packages"
@@ -29,6 +30,7 @@ const (
 	CallGraphTypeStatic CallGraphType = "static"
 	CallGraphTypeCha    CallGraphType = "cha"
 	CallGraphTypeRta    CallGraphType = "rta"
+	CallGraphTypeVta    CallGraphType = "vta"
 )
 
 // ==[ type def/func: analysis   ]===============================================
@@ -143,6 +145,8 @@ func (a *analysis) DoAnalysis(
 		graph = static.CallGraph(prog)
 	case CallGraphTypeCha:
 		graph = cha.CallGraph(prog)
+	case CallGraphTypeVta:
+		fallthrough
 	case CallGraphTypeRta:
 		mains, err := mainPackages(prog.AllPackages())
 		if err != nil {
@@ -161,8 +165,15 @@ func (a *analysis) DoAnalysis(
 		for _, init := range inits {
 			roots = append(roots, init)
 		}
-
 		graph = rta.Analyze(roots, true).CallGraph
+
+		if algo == CallGraphTypeVta {
+			funcs := make(map[*ssa.Function]bool)
+			for fun := range graph.Nodes {
+				funcs[fun] = true
+			}
+			graph = vta.CallGraph(funcs, graph)
+		}
 	default:
 		return fmt.Errorf("invalid call graph type: %s", a.opts.algo)
 	}
