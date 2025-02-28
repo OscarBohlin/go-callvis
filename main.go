@@ -155,6 +155,7 @@ func dotToCsv(fname string) (error) {
 	writer.Flush()
 	f.Close()
 	return nil
+}
 
 func outputImports(fname string) {
 	output := ""
